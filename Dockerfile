@@ -2,6 +2,7 @@ FROM osrm/osrm-backend:latest
 ENV OSRM_PBF_URL=http://download.geofabrik.de/africa/madagascar-latest.osm.pbf
 ENV OSRM_GRAPH_PROFILE=bicycle
 ENV OSRM_DATA_LABEL=madagascar-latest
+RUN deb http://security.debian.org/ stretch/updates main contrib non-free
 RUN apt update && apt install -y wget
 EXPOSE 5000
 COPY ./docker-entrypoint.sh /opt/docker-entrypoint.sh
