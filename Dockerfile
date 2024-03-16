@@ -2,6 +2,7 @@ FROM osrm/osrm-backend:latest
 ENV OSRM_PBF_URL=http://download.geofabrik.de/africa/madagascar-latest.osm.pbf
 ENV OSRM_GRAPH_PROFILE=bicycle
 ENV OSRM_DATA_LABEL=madagascar-latest
+RUN echo "deb http://archive.debian.org/debian stretch main contrib non-free" > /etc/apt/sources.list
 RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list
 RUN sed -i s/security.debian.org/archive.debian.org/g /etc/apt/sources.list
 RUN apt update && apt install -y wget
