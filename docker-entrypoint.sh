@@ -1,30 +1,23 @@
 #!/bin/bash
+set -e
 
-# Defaults
-OSRM_DATA_LABEL=${OSRM_DATA_LABEL:="madagascar-latest"}
-OSRM_GRAPH_PROFILE=${OSRM_GRAPH_PROFILE:="bicycle"}
-OSRM_PBF_URL=${OSRM_PBF_URL:="http://download.geofabrik.de/africa/madagascar-latest.osm.pbf"}
-OSRM_MAX_TABLE_SIZE=${OSRM_MAX_TABLE_SIZE:="8000"}
-OSRM_DATA_PATH=${OSRM_DATA_PATH:="/opt"}
+OSRM_DATA_LABEL=${OSRM_DATA_LABEL:-"madagascar-latest"}
+OSRM_GRAPH_PROFILE=${OSRM_GRAPH_PROFILE:-"bicycle"}
+OSRM_PBF_URL=${OSRM_PBF_URL:-"http://download.geofabrik.de/africa/madagascar-latest.osm.pbf"}
+OSRM_MAX_TABLE_SIZE=${OSRM_MAX_TABLE_SIZE:-"8000"}
+OSRM_DATA_PATH=${OSRM_DATA_PATH:-"/data"}
 
-_sig() {
-  kill -TERM $child 2>/dev/null
-}
-trap _sig SIGKILL SIGTERM SIGHUP SIGINT EXIT
+mkdir -p $OSRM_DATA_PATH
+cd $OSRM_DATA_PATH
 
+echo "Downloading PBF..."
+wget -O ${OSRM_DATA_LABEL}.osm.pbf $OSRM_PBF_URL
 
-# Retrieve the PBF file
-wget $OSRM_PBF_URL
+echo "Extracting..."
+osrm-extract ${OSRM_DATA_LABEL}.osm.pbf -p /opt/${OSRM_GRAPH_PROFILE}.lua
 
-# Set the graph profile path
-OSRM_GRAPH_PROFILE_PATH="$OSRM_DATA_PATH/$OSRM_GRAPH_PROFILE.lua"
+echo "Contracting..."
+osrm-contract ${OSRM_DATA_LABEL}.osrm
 
-
-# Build the graph
-osrm-extract $OSRM_DATA_PATH/$OSRM_DATA_LABEL.osm.pbf -p $OSRM_GRAPH_PROFILE_PATH
-osrm-contract $OSRM_DATA_PATH/$OSRM_DATA_LABEL.osrm
-
-# Start serving requests
-osrm-routed $OSRM_DATA_PATH/$OSRM_DATA_LABEL.osrm --max-table-size $OSRM_MAX_TABLE_SIZE &
-child=$!
-wait "$child"
+echo "Starting OSRM..."
+exec osrm-routed ${OSRM_DATA_LABEL}.osrm --max-table-size $OSRM_MAX_TABLE_SIZE
