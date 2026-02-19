@@ -20,4 +20,12 @@ echo "Contracting..."
 osrm-contract ${OSRM_DATA_LABEL}.osrm
 
 echo "Starting OSRM..."
-exec osrm-routed ${OSRM_DATA_LABEL}.osrm --max-table-size $OSRM_MAX_TABLE_SIZE
+
+PORT=${PORT:-5000}
+
+exec osrm-routed \
+  --algorithm ch \
+  --port $PORT \
+  --ip 0.0.0.0 \
+  ${OSRM_DATA_LABEL}.osrm \
+  --max-table-size $OSRM_MAX_TABLE_SIZE
